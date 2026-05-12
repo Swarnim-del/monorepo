@@ -1,0 +1,87 @@
+{% extends "base.html" %}
+{% block title %}{{ conversation.title }}{% endblock %}
+{% block content %}
+<p><a href="{% url 'conversation_list' %}">← Back</a></p>
+<h1>{{ conversation.title }}</h1>
+<div class="card" style="margin-bottom:1rem;">
+  <div class="muted" style="margin-bottom:0.35rem;">Invite token (share so others can join)</div>
+  <code id="invite-token" style="word-break:break-all;font-size:0.9rem;">{{ conversation.invite_token }}</code>
+  <div style="margin-top:0.65rem;display:flex;gap:0.5rem;flex-wrap:wrap;align-items:center;">
+    <button type="button" class="btn secondary" id="copy-token">Copy token</button>
+    <form method="post" action="{% url 'invite_regenerate' conversation.pk %}" style="display:inline;">
+      {% csrf_token %}
+      <button type="submit" class="btn secondary">New token</button>
+    </form>
+  </div>
+  <p class="muted" style="margin-top:0.5rem;margin-bottom:0;">Anyone with the token can join until you rotate it with “New token”.</p>
+</div>
+<ul class="messages" id="msg-list">
+  {% for m in chat_messages %}
+    <li data-id="{{ m.id }}">
+      <strong>{{ m.author.get_username|default:"?" }}</strong>
+      <span class="muted">{{ m.created_at|date:"H:i" }}</span><br>
+      {{ m.body }}
+    </li>
+  {% endfor %}
+</ul>
+<form id="composer" class="composer">
+  {% csrf_token %}
+  <input id="body" type="text" autocomplete="off" placeholder="Message…" maxlength="4000">
+  <button class="btn" type="submit">Send</button>
+</form>
+{% endblock %}
+{% block extra_head %}
+<script>
+  document.addEventListener("DOMContentLoaded", () => {
+    const convId = {{ conversation.id }};
+    const scheme = window.location.protocol === "https:" ? "wss" : "ws";
+    const wsUrl = `${scheme}://${window.location.host}/ws/chat/${convId}/`;
+    const listEl = document.getElementById("msg-list");
+    const input = document.getElementById("body");
+    const form = document.getElementById("composer");
+    const copyBtn = document.getElementById("copy-token");
+    const tokenEl = document.getElementById("invite-token");
+    if (copyBtn && tokenEl) {
+      copyBtn.addEventListener("click", async () => {
+        try {
+          await navigator.clipboard.writeText(tokenEl.textContent.trim());
+          copyBtn.textContent = "Copied";
+          setTimeout(() => { copyBtn.textContent = "Copy token"; }, 2000);
+        } catch (_) {}
+      });
+    }
+    function appendMessage(author, body, createdAt, id) {
+      if (id && listEl.querySelector(`[data-id="${id}"]`)) return;
+      const li = document.createElement("li");
+      if (id) li.dataset.id = id;
+      const timeLabel = createdAt.length >= 16 ? createdAt.slice(11, 16) : createdAt;
+      li.innerHTML = `<strong>${author}</strong> <span class="muted">${timeLabel}</span><br>${escapeHtml(body)}`;
+      listEl.appendChild(li);
+      listEl.scrollTop = listEl.scrollHeight;
+    }
+
+    function escapeHtml(s) {
+      const d = document.createElement("div");
+      d.textContent = s;
+      return d.innerHTML;
+    }
+
+    const socket = new WebSocket(wsUrl);
+
+    socket.onmessage = (ev) => {
+      const data = JSON.parse(ev.data);
+      if (data.type === "message") {
+        appendMessage(data.author, data.body, data.created_at, data.id);
+      }
+    };
+
+    form.addEventListener("submit", (e) => {
+      e.preventDefault();
+      const body = input.value.trim();
+      if (!body || socket.readyState !== WebSocket.OPEN) return;
+      socket.send(JSON.stringify({ message: body }));
+      input.value = "";
+    });
+  });
+</script>
+{% endblock %}

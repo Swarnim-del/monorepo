@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% block title %}Conversations{% endblock %}
+{% block content %}
+<h1>Conversations</h1>
+<p><a href="{% url 'join_conversation' %}">Join a group with a token</a></p>
+<form method="post" action="{% url 'conversation_create' %}" style="margin-bottom:1.25rem;display:flex;gap:0.5rem;align-items:flex-end;flex-wrap:wrap;">
+  {% csrf_token %}
+  <div style="flex:1;min-width:200px;">
+    <label for="title">New conversation title</label>
+    <input id="title" name="title" type="text" placeholder="e.g. Team standup">
+  </div>
+  <button class="btn" type="submit">Start</button>
+</form>
+{% if conversations %}
+  {% for c in conversations %}
+    <div class="card">
+      <a href="{% url 'chat_room' c.pk %}"><strong>{{ c.title }}</strong></a>
+      <div class="muted">Started {{ c.created_at|date:"M j, Y H:i" }}</div>
+    </div>
+  {% endfor %}
+{% else %}
+  <p class="muted">No conversations yet. Create one above.</p>
+{% endif %}
+{% endblock %}

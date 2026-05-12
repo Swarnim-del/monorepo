@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% block title %}Log in{% endblock %}
+{% block content %}
+<h1>Log in</h1>
+<form method="post" action="{% url 'login' %}">
+  {% csrf_token %}
+  <label for="id_username">Username</label>
+  <input id="id_username" name="username" type="text" autocomplete="username" required autofocus>
+  <label for="id_password">Password</label>
+  <input id="id_password" name="password" type="password" autocomplete="current-password" required>
+  <input type="hidden" name="next" value="{{ next }}">
+  <p style="margin-top:1rem;"><button class="btn" type="submit">Log in</button></p>
+</form>
+{% endblock %}

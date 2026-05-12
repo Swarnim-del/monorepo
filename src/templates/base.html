@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}Chat{% endblock %}</title>
+  <style>
+    :root { --bg: #0f1419; --panel: #1a2332; --text: #e7ecf3; --muted: #8b9cb3; --accent: #3d8bfd; --border: #2a3544; }
+    * { box-sizing: border-box; }
+    body { margin: 0; font-family: system-ui, sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+    a { color: var(--accent); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    header { display: flex; align-items: center; justify-content: space-between; padding: 1rem 1.25rem; border-bottom: 1px solid var(--border); background: var(--panel); }
+    main { max-width: 720px; margin: 0 auto; padding: 1.25rem; }
+    .btn { display: inline-block; padding: 0.5rem 0.9rem; border-radius: 6px; border: 1px solid var(--border); background: var(--accent); color: #fff; font-size: 0.9rem; cursor: pointer; }
+    .btn.secondary { background: transparent; color: var(--text); }
+    input[type="text"], input[type="password"] { width: 100%; padding: 0.55rem 0.65rem; border-radius: 6px; border: 1px solid var(--border); background: var(--bg); color: var(--text); }
+    label { display: block; margin: 0.75rem 0 0.25rem; color: var(--muted); font-size: 0.85rem; }
+    .card { background: var(--panel); border: 1px solid var(--border); border-radius: 10px; padding: 1rem; margin-bottom: 0.75rem; }
+    .muted { color: var(--muted); font-size: 0.85rem; }
+    ul.messages { list-style: none; padding: 0; margin: 0 0 1rem; max-height: 50vh; overflow-y: auto; }
+    ul.messages li { padding: 0.5rem 0; border-bottom: 1px solid var(--border); }
+    .composer { display: flex; gap: 0.5rem; margin-top: 0.5rem; }
+    .composer input { flex: 1; }
+  </style>
+  {% block extra_head %}{% endblock %}
+</head>
+<body>
+  <header>
+    <strong><a href="{% url 'conversation_list' %}">Monorepo chat</a></strong>
+    <nav>
+      {% if user.is_authenticated %}
+        <span class="muted">{{ user.get_username }}</span>
+        &nbsp;·&nbsp;
+        <form method="post" action="{% url 'logout' %}" style="display:inline;">
+          {% csrf_token %}
+          <button type="submit" class="btn secondary" style="padding:0.35rem 0.65rem;">Log out</button>
+        </form>
+      {% else %}
+        <a href="{% url 'login' %}">Log in</a>
+      {% endif %}
+    </nav>
+  </header>
+  <main>
+    {% if messages %}
+      {% for message in messages %}
+        <p class="muted">{{ message }}</p>
+      {% endfor %}
+    {% endif %}
+    {% block content %}{% endblock %}
+  </main>
+</body>
+</html>
