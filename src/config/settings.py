@@ -1,19 +1,66 @@
 """
 Django settings: HTTP (ASGI), Channels WebSockets, Redis sessions, Postgres.
+
+Environment:
+  DJANGO_ENV=development|production
+  Optional dotenv: set DJANGO_DOTENV_FILE to a path, or a default file is loaded
+  from the repo root (parent of src/) based on DJANGO_ENV before Django reads
+  other variables. Existing OS environment variables win over dotenv values.
 """
 import os
 from pathlib import Path
 
-BASE_DIR = Path(__file__).resolve().parent.parent
+from django.core.exceptions import ImproperlyConfigured
 
-SECRET_KEY = os.environ.get(
-    "DJANGO_SECRET_KEY",
-    "django-insecure-dev-only-change-in-production",
-)
+# src/ (contains manage.py, apps, templates)
+BASE_DIR = Path(__file__).resolve().parent.parent
+# monorepo/ (pyproject.toml, docker-compose, .env.*)
+REPO_ROOT = BASE_DIR.parent
+
+_DEFAULT_DEV_SECRET = "django-insecure-dev-only-change-in-production"
+
+
+def _load_dotenv() -> None:
+    """Load .env file into os.environ for local/proc setups (override=False: shell wins)."""
+    explicit = os.environ.get("DJANGO_DOTENV_FILE", "").strip()
+    if explicit:
+        path = Path(explicit).expanduser()
+    else:
+        env_hint = os.environ.get("DJANGO_ENV", "").strip().lower()
+        if env_hint == "production":
+            path = REPO_ROOT / ".env.production"
+        else:
+            path = REPO_ROOT / ".env.development"
+    if not path.is_file():
+        return
+    from dotenv import load_dotenv
+
+    load_dotenv(path, override=False)
+
+
+_load_dotenv()
+
+DJANGO_ENV = os.environ.get("DJANGO_ENV", "development").strip().lower()
+if DJANGO_ENV not in ("development", "production"):
+    raise ImproperlyConfigured(
+        f"DJANGO_ENV must be 'development' or 'production', got {DJANGO_ENV!r}."
+    )
+
+SECRET_KEY = os.environ.get("DJANGO_SECRET_KEY", _DEFAULT_DEV_SECRET)
 DEBUG = os.environ.get("DJANGO_DEBUG", "true").lower() in ("1", "true", "yes")
 
 ALLOWED_HOSTS = os.environ.get("DJANGO_ALLOWED_HOSTS", "localhost,127.0.0.1").split(",")
 ALLOWED_HOSTS = [h.strip() for h in ALLOWED_HOSTS if h.strip()]
+
+if DJANGO_ENV == "production":
+    if not SECRET_KEY or SECRET_KEY == _DEFAULT_DEV_SECRET:
+        raise ImproperlyConfigured(
+            "Set DJANGO_SECRET_KEY to a unique, unpredictable value in production."
+        )
+    if DEBUG:
+        raise ImproperlyConfigured("Set DJANGO_DEBUG=false in production.")
+    if not ALLOWED_HOSTS:
+        raise ImproperlyConfigured("Set DJANGO_ALLOWED_HOSTS in production.")
 
 INSTALLED_APPS = [
     "daphne",
@@ -128,3 +175,10 @@ CSRF_TRUSTED_ORIGINS = [
     for o in os.environ.get("DJANGO_CSRF_TRUSTED_ORIGINS", "").split(",")
     if o.strip()
 ]
+
+if DJANGO_ENV == "production":
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
+    SECURE_SSL_REDIRECT = os.environ.get(
+        "DJANGO_SECURE_SSL_REDIRECT", "true"
+    ).lower() in ("1", "true", "yes")
