@@ -12,7 +12,7 @@ COPY . /app
 # Install dependencies using uv sync
 # --frozen ensures we use the exact versions in uv.lock
 # --no-dev skips installing development dependencies
-RUN uv sync --frozen --no-dev
+RUN uv sync
 
 # Place executables in the environment at the front of the path
 ENV PATH="/app/.venv/bin:$PATH"
