@@ -1,4 +1,17 @@
 services:
+  web:
+    build:
+      context: .
+    ports:
+      - "8000:8000"
+    env_file:
+      - .env.development
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
   db:
     image: postgres:16-alpine
     environment:
