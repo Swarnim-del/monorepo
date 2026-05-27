@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+{% block title %}Sign up{% endblock %}
+{% block content %}
+<h1>Sign up</h1>
+
+{% if form.errors %}
+  <div style="background: rgba(220, 53, 69, 0.1); border: 1px solid #dc3545; padding: 0.75rem; border-radius: 6px; margin-bottom: 1rem; font-size: 0.9rem;">
+    <strong>Please correct the following errors:</strong>
+    <ul style="margin: 0.5rem 0 0 0; padding-left: 1.25rem;">
+      {% for field in form %}
+        {% for error in field.errors %}
+          <li>{{ field.label }}: {{ error }}</li>
+        {% endfor %}
+      {% endfor %}
+      {% for error in form.non_field_errors %}
+        <li>{{ error }}</li>
+      {% endfor %}
+    </ul>
+  </div>
+{% endif %}
+
+<form method="post" action="{% url 'signup' %}">
+  {% csrf_token %}
+  
+  {% for field in form %}
+    <div>
+      <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+      {{ field }}
+      {% if field.help_text %}
+        <small class="muted" style="display: block; margin-top: 0.25rem; font-size: 0.75rem;">
+          {{ field.help_text|safe }}
+        </small>
+      {% endif %}
+    </div>
+  {% endfor %}
+
+  <p style="margin-top: 1.5rem;">
+    <button class="btn" type="submit" style="width: 100%;">Sign up</button>
+  </p>
+</form>
+
+<p class="muted" style="text-align: center; margin-top: 1.5rem;">
+  Already have an account? <a href="{% url 'login' %}">Log in here</a>.
+</p>
+{% endblock %}
