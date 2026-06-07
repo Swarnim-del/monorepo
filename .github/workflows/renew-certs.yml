@@ -1,0 +1,29 @@
+name: Weekly SSL Certificate Renewal
+
+on:
+  schedule:
+    # Runs at 00:00 UTC every Sunday
+    - cron: '0 0 * * 0'
+  # Allows manual triggers from the GitHub Actions tab
+  workflow_dispatch: 
+
+jobs:
+  renew-certs:
+    name: Renew SSL Certificates
+    runs-on: ubuntu-latest
+    steps:
+      - name: Renew on Dev Server
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.DEV_SSH_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ssh-keyscan -H ${{ secrets.DEV_HOST }} >> ~/.ssh/known_hosts
+          ssh -i ~/.ssh/id_rsa ${{ secrets.DEV_USER }}@${{ secrets.DEV_HOST }} "sudo certbot renew --post-hook 'sudo systemctl reload nginx'"
+
+      - name: Renew on Prod Server
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.PROD_SSH_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ssh-keyscan -H ${{ secrets.PROD_HOST }} >> ~/.ssh/known_hosts
+          ssh -i ~/.ssh/id_rsa ${{ secrets.PROD_USER }}@${{ secrets.PROD_HOST }} "sudo certbot renew --post-hook 'sudo systemctl reload nginx'"
