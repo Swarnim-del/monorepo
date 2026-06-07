@@ -8,12 +8,12 @@ on:
 
 jobs:
   deploy:
-    name: Deploy to ${{ github.ref_name == 'master' && 'Development' || 'Production' }}
+    name: Deploy to ${{ github.ref_name == 'master' && 'dev' || 'production' }}
     runs-on: ubuntu-latest
     steps:
       - name: Set up Environment Variables
         run: |
-          if [ "${{ github.ref_name }}" = "main" ]; then
+          if [ "${{ github.ref_name }}" = "master" ]; then
             echo "ENV_NAME=dev" >> $GITHUB_ENV
             echo "SERVER_HOST=${{ secrets.DEV_HOST }}" >> $GITHUB_ENV
             echo "SERVER_USER=${{ secrets.DEV_USER }}" >> $GITHUB_ENV
