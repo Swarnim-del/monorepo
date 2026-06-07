@@ -1,0 +1,31 @@
+name: Deploy to dev
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  deploy:
+    name: Deploy to dev
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy to Server via SSH
+        run: |
+          # Create ssh directory and add private key
+          mkdir -p ~/.ssh
+          echo "${{ secrets.DEV_SSH_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          
+          # Add target host to known hosts
+          ssh-keyscan -H ${{ secrets.DEV_HOST }} >> ~/.ssh/known_hosts
+          
+          # Run remote deployment command to pull, build, and restart
+          ssh -i ~/.ssh/id_rsa ${{ secrets.DEV_USER }}@${{ secrets.DEV_HOST }} "
+            cd ${{ secrets.DEV_DEPLOY_PATH }}
+            git fetch origin
+            git checkout master
+            git pull origin master
+            docker compose build
+            docker compose up -d
+          "

@@ -1,0 +1,31 @@
+name: Deploy to production
+
+on:
+  push:
+    branches:
+      - production
+
+jobs:
+  deploy:
+    name: Deploy to production
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy to Server via SSH
+        run: |
+          # Create ssh directory and add private key
+          mkdir -p ~/.ssh
+          echo "${{ secrets.PROD_SSH_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          
+          # Add target host to known hosts
+          ssh-keyscan -H ${{ secrets.PROD_HOST }} >> ~/.ssh/known_hosts
+          
+          # Run remote deployment command to pull, build, and restart
+          ssh -i ~/.ssh/id_rsa ${{ secrets.PROD_USER }}@${{ secrets.PROD_HOST }} "
+            cd ${{ secrets.PROD_DEPLOY_PATH }}
+            git fetch origin
+            git checkout production
+            git pull origin production
+            docker compose build
+            docker compose up -d
+          "

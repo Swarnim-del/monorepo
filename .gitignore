@@ -8,3 +8,8 @@ __pycache__/
 
 *.log
 staticfiles/
+
+*.lock
+
+docker-compose.dev.yml
+

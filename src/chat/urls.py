@@ -12,4 +12,5 @@ urlpatterns = [
     ),
     path("join/", views.join_conversation, name="join_conversation"),
     path("chat/<int:pk>/", views.chat_room, name="chat_room"),
+    path("accounts/signup/", views.signup, name="signup"),
 ]
