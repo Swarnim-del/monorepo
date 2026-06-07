@@ -180,8 +180,8 @@ CSRF_TRUSTED_ORIGINS = [
 SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 
 if DJANGO_ENV == "production":
-    SESSION_COOKIE_SECURE = True
-    CSRF_COOKIE_SECURE = True
+    SESSION_COOKIE_SECURE = False
+    CSRF_COOKIE_SECURE = False
     SECURE_SSL_REDIRECT = os.environ.get(
         "DJANGO_SECURE_SSL_REDIRECT", "true"
     ).lower() in ("1", "true", "yes")
