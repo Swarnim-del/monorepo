@@ -17,8 +17,9 @@ RUN uv sync
 # Place executables in the environment at the front of the path
 ENV PATH="/app/.venv/bin:$PATH"
 
-# Expose port
-EXPOSE 8000
+# Expose port 8000
+EXPOSE 8000 
+
 
 # Change to the source directory where manage.py and config are located
 WORKDIR /app/src
