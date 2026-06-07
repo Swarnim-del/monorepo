@@ -5,12 +5,18 @@ services:
     ports:
       - "8000:8000"
     env_file:
-      - .env.development
+      - ${ENV_FILE:-.env.development}
+    environment:
+      - POSTGRES_HOST=db
+      - REDIS_HOST=redis
     depends_on:
       db:
         condition: service_healthy
       redis:
         condition: service_healthy
+    command: >
+      sh -c "python manage.py migrate --noinput &&
+             exec python manage.py runserver 0.0.0.0:8000"
 
   db:
     image: postgres:16-alpine
@@ -23,7 +29,7 @@ services:
     volumes:
       - pgdata:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U monorepo -d monorepo"]
+      test: [ "CMD-SHELL", "pg_isready -U monorepo -d monorepo" ]
       interval: 3s
       timeout: 5s
       retries: 10
@@ -33,7 +39,7 @@ services:
     ports:
       - "6379:6379"
     healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
+      test: [ "CMD", "redis-cli", "ping" ]
       interval: 3s
       timeout: 3s
       retries: 10
