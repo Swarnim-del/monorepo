@@ -176,6 +176,9 @@ CSRF_TRUSTED_ORIGINS = [
     if o.strip()
 ]
 
+# Tell Django it is behind a reverse proxy that terminates SSL
+SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+
 if DJANGO_ENV == "production":
     SESSION_COOKIE_SECURE = True
     CSRF_COOKIE_SECURE = True
