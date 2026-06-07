@@ -3,12 +3,12 @@ name: CI/CD Pipeline
 on:
   push:
     branches:
-      - main
+      - master
       - production
 
 jobs:
   deploy:
-    name: Deploy to ${{ github.ref_name == 'main' && 'Development' || 'Production' }}
+    name: Deploy to ${{ github.ref_name == 'master' && 'Development' || 'Production' }}
     runs-on: ubuntu-latest
     steps:
       - name: Set up Environment Variables
