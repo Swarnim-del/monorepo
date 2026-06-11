@@ -1,0 +1,6 @@
+future tasks:
+1. connect oauth setup , so that external users can also connect with the chatbot
+2. create a seperate user profile page 
+3. connect a seperate db 
+4. one to one chat ui-ux
+5. group chat ui-ux 
