@@ -4,3 +4,10 @@ future tasks:
 3. connect a seperate db 
 4. one to one chat ui-ux
 5. group chat ui-ux 
+
+
+
+time based scaling
+cpu metric 
+sticky websocket servers ??
+

@@ -1,4 +1,5 @@
 import uuid
+from unittest.mock import patch
 from asgiref.sync import async_to_sync
 from channels.testing import WebsocketCommunicator
 from django.contrib.auth.models import AnonymousUser, User
@@ -148,6 +149,40 @@ class ViewTests(TestCase):
         response = self.client.post(reverse("join_conversation"), {"token": str(random_token)})
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.context["error"], "No group matches this token.")
+
+    def test_health_check_success(self):
+        response = self.client.get(reverse("health_check"))
+        self.assertEqual(response.status_code, 200)
+        data = response.json()
+        self.assertEqual(data["status"], "healthy")
+        self.assertEqual(data["database"], "healthy")
+        self.assertEqual(data["cache"], "healthy")
+
+    def test_health_check_post_not_allowed(self):
+        response = self.client.post(reverse("health_check"))
+        self.assertEqual(response.status_code, 405)
+
+    @patch("chat.views.connections")
+    def test_health_check_db_failure(self, mock_connections):
+        mock_connections.__getitem__.return_value.cursor.side_effect = Exception("Database connection failed")
+        response = self.client.get(reverse("health_check"))
+        self.assertEqual(response.status_code, 503)
+        data = response.json()
+        self.assertEqual(data["status"], "unhealthy")
+        self.assertEqual(data["database"], "unhealthy")
+        self.assertEqual(data["cache"], "healthy")
+        self.assertIn("database", data["errors"])
+
+    @patch("chat.views.caches")
+    def test_health_check_cache_failure(self, mock_caches):
+        mock_caches.__getitem__.return_value.set.side_effect = Exception("Redis connection failed")
+        response = self.client.get(reverse("health_check"))
+        self.assertEqual(response.status_code, 503)
+        data = response.json()
+        self.assertEqual(data["status"], "unhealthy")
+        self.assertEqual(data["database"], "healthy")
+        self.assertEqual(data["cache"], "unhealthy")
+        self.assertIn("cache", data["errors"])
 
 
 class ConsumerTests(TransactionTestCase):
