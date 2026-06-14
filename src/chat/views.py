@@ -1,12 +1,17 @@
+import logging
 import uuid
 
 from django.contrib.auth.decorators import login_required
-from django.http import Http404, HttpResponseRedirect
+from django.core.cache import caches
+from django.db import connections
+from django.http import Http404, HttpResponseRedirect, JsonResponse
 from django.shortcuts import get_object_or_404, render
 from django.urls import reverse
 from django.views.decorators.http import require_http_methods
 
 from .models import Conversation, ConversationMember, Message
+
+logger = logging.getLogger(__name__)
 
 
 @login_required
@@ -102,4 +107,47 @@ def signup(request):
     else:
         form = UserCreationForm()
     return render(request, "registration/signup.html", {"form": form})
+
+
+@require_http_methods(["GET"])
+def health_check(request):
+    db_ok = True
+    cache_ok = True
+    errors = {}
+
+    # Check Database
+    try:
+        with connections["default"].cursor() as cursor:
+            cursor.execute("SELECT 1;")
+            row = cursor.fetchone()
+            if row is None or row[0] != 1:
+                db_ok = False
+                errors["database"] = "Invalid query result"
+    except Exception as e:
+        db_ok = False
+        errors["database"] = str(e)
+        logger.exception("Health check: Database connection failed")
+
+    # Check Cache (Redis)
+    try:
+        cache = caches["default"]
+        cache.set("health_check_key", "ok", timeout=5)
+        if cache.get("health_check_key") != "ok":
+            cache_ok = False
+            errors["cache"] = "Cache read/write verification failed"
+    except Exception as e:
+        cache_ok = False
+        errors["cache"] = str(e)
+        logger.exception("Health check: Cache connection failed")
+
+    status_code = 200 if (db_ok and cache_ok) else 503
+    response_data = {
+        "status": "healthy" if status_code == 200 else "unhealthy",
+        "database": "healthy" if db_ok else "unhealthy",
+        "cache": "healthy" if cache_ok else "unhealthy",
+    }
+    if errors:
+        response_data["errors"] = errors
+
+    return JsonResponse(response_data, status=status_code)
 
