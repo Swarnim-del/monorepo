@@ -1,94 +1,47 @@
-# Monorepo Chat Application
+# 💬 Monorepo Chat Application
 
-A modern, real-time chat application built with **Django**, **Django Channels** (WebSockets), **Redis**, and **PostgreSQL**, running inside an isolated **Docker** environment.
-
----
-
-## 🚀 Key Features
-
-* **Real-time Messaging:** Direct, low-latency messaging powered by ASGI, Daphne, and WebSockets (via Django Channels).
-* **Robust Auth & Sessions:** Secure user sign-up, login, and session persistence powered by Redis caching.
-* **Group Management:** Create private rooms, regenerate secure UUID invitation tokens, and join existing conversations.
-* **Production-Ready CI/CD:** Fully automated testing and SSH-based deployment pipelines.
-* **Automated SSL Management:** Weekly automated Let's Encrypt certificate renewals via GitHub Actions.
+A premium, modern, real-time chat platform designed for fast, seamless communication. Experience low-latency direct and group messaging powered by Django, WebSockets, and Redis.
 
 ---
 
-## 🛠️ Tech Stack
-
-* **Backend Framework:** Django 5.0+
-* **Asynchronous Server (ASGI):** Daphne (ASGI web server for WebSockets)
-* **WebSocket Framework:** Django Channels
-* **Database (Relational):** PostgreSQL 16 (for chat models, user accounts, and memberships)
-* **Caching & Broker:** Redis 7 (for session storage and Channels communication layers)
-* **Dependency Manager:** uv (packaged inside Docker)
-* **Containerization:** Docker & Docker Compose
-
----
-
-## 💻 Local Development Setup
-
-### Prerequisites
-Make sure you have **Docker** and **Docker Compose** installed on your local machine.
-
-### Running the Application
-1. **Clone the repository:**
-   ```bash
-   git clone <your-repo-url> monorepo
-   cd monorepo
-   ```
-
-2. **Start the containers:**
-   ```bash
-   docker compose up --build -d
-   ```
-   *This command builds the Django image, starts Postgres, Redis, and Web containers, runs database migrations automatically, and starts the development server.*
-
-3. **Access the application:**
-   Open your browser and navigate to `http://localhost:8000`.
+> [!IMPORTANT]
+> ### 🚀 Try It Live Right Now!
+> No local setup, installation, or configuration required! Open the links below to test the app instantly:
+> 
+> * **✨ Production Server (Recommended):** [**https://monorepo.prod.buildwithkamal.uk**](https://monorepo.prod.buildwithkamal.uk)
+>   * *This is the stable, high-performance release environment for general testing.*
+> * **🧪 Development Server:** [**https://monorepo.dev.buildwithkamal.uk**](https://monorepo.dev.buildwithkamal.uk)
+>   * *This server reflects the latest pre-release updates built directly from the development master branch.*
+>
+> 💡 **Get Started in Seconds:**
+> 1. Click one of the links above.
+> 2. Create a new account or log in.
+> 3. Join or create a group chat and start messaging in real-time!
 
 ---
 
-## 🧪 Unit Tests and Code Coverage
+## ✨ Key Features
 
-We have implemented a comprehensive test suite (scoring **96% code coverage**) covering Django models, views, and async WebSocket consumers (tested using Channels `WebsocketCommunicator`).
-
-To execute the tests and inspect the coverage report inside the running Docker container, run:
-
-```bash
-# Run the test suite under the coverage runner
-docker compose exec web coverage run --source='chat' manage.py test chat
-
-# View the line-by-line coverage report
-docker compose exec web coverage report -m
-```
-
----
-
-## 📡 CI/CD Deployment Architecture
-
-We use **GitHub Actions** for all automation tasks. The workflows are divided into:
-
-1. **Dev Pipeline ([deploy-dev.yml](.github/workflows/deploy-dev.yml)):**
-   * **Trigger:** Pushes to the `master` branch.
-   * **CI Job:** Launches test services (Postgres, Redis) in the runner and executes the test suite.
-   * **CD Job:** If tests pass, SSHs into the Dev server, pulls code, builds, and restarts the Docker containers.
-
-2. **Prod Pipeline ([deploy-prod.yml](.github/workflows/deploy-prod.yml)):**
-   * **Trigger:** Pushes to the `production` branch.
-   * **CI Job:** Runs the test suite in the runner.
-   * **CD Job:** If tests pass, SSHs into the Prod server, pulls code, builds, and restarts the containers.
-
-3. **Certificate Renewal ([renew-certs.yml](.github/workflows/renew-certs.yml)):**
-   * **Trigger:** Runs automatically every Sunday at 00:00 UTC (or manually via Workflow Dispatch).
-   * **CD Job:** SSHs into the target servers and runs `certbot renew` to ensure SSL certificates never expire.
+* **⚡ Real-time Messaging:** Experience instantaneous communication with direct and group messaging powered by ASGI, Daphne, and WebSockets (Django Channels).
+* **🔒 Secure Authentication:** Sign up, log in, and enjoy secure sessions backed by high-speed Redis caching.
+* **👥 Room & Group Management:** Create custom group chat rooms, generate unique and secure invite links, and add members with ease.
+* **📈 High Availability:** Fully responsive user interface, optimized for both mobile and desktop screens.
 
 ---
 
 ## 🔮 Future Roadmap
 
-* **OAuth Setup:** Connect external identity providers so users can log in via third-party services.
-* **User Profiles:** A dedicated page for user customization and status configurations.
-* **Separate Databases:** Decouple chat history data from core application accounts.
-* **1-to-1 Chat UI-UX:** Dedicated UI upgrades for private direct messaging.
-* **Group Chat UI-UX:** Enhanced group views, member management, and invite interfaces.
+We are constantly improving the platform! Here's a look at what is coming next:
+* **🔑 OAuth Integration:** Support for Google, GitHub, and other external sign-ins.
+* **👤 User Profiles:** Add custom avatars, bio details, and status updates.
+* **🗄️ Multi-Database Architecture:** Decouple chat history storage from user accounts for improved performance and scaling.
+* **💬 1-to-1 Direct Messaging:** Advanced design upgrades for direct user chats.
+* **📣 Enhanced Group Controls:** Admin roles, invite management, and member permissions.
+
+---
+
+## 🛠️ Technical Details & Local Setup
+
+Are you a developer interested in running this project locally, inspecting the test suite, or understanding the CI/CD architecture?
+
+👉 **Check out the [DEVELOPMENT.md](file:///Users/home/Documents/personal_projects/monorepo/DEVELOPMENT.md) guide** for detailed steps on local dockerized setup, testing, and GitHub Actions deployments.
